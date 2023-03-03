@@ -312,6 +312,10 @@ export default class ScreenShare
     this.engine?.release();
   }
 
+  onTokenPrivilegeWillExpire(connection: RtcConnection) {
+    debugger;
+  }
+
   onJoinChannelSuccess(connection: RtcConnection, elapsed: number) {
     const { uid2 } = this.state;
     if (connection.localUid === uid2) {
