@@ -65,6 +65,7 @@
     ]
   },
   "dependencies": {
+    "agora-access-token": "^2.0.4",
     "agora-electron-sdk": "4.1.0",
     "antd": "^4.20.3",
     "ffi-napi": "^4.0.3",
