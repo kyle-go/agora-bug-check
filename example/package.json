@@ -65,7 +65,7 @@
     ]
   },
   "dependencies": {
-    "agora-electron-sdk": "latest",
+    "agora-electron-sdk": "4.1.0",
     "antd": "^4.20.3",
     "ffi-napi": "^4.0.3",
     "history": "^5.0.0",
@@ -85,7 +85,7 @@
     "@types/react": "^16.9.44",
     "@types/react-dom": "^18.0.3",
     "@types/react-router-dom": "^5.1.6",
-    "electron": "18.2.3",
+    "electron": "22.3.1",
     "electron-builder": "^23.1.0",
     "electron-webpack": "^2.8.2",
     "electron-webpack-ts": "^4.0.1",
