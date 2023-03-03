@@ -124,13 +124,14 @@ export default class ScreenShare
    * Step 2: joinChannel
    */
   protected joinChannel() {
-    const { channelId, token, uid } = this.state;
+    const { channelId, token, uid, strUid } = this.state;
     if (!channelId) {
       this.error('channelId is invalid');
       return;
     }
-    if (uid < 0) {
-      this.error('uid is invalid');
+    if (!strUid) {
+      this.error('string uid is invalid');
+      alert('Please enter a string uid!');
       return;
     }
 
@@ -140,7 +141,7 @@ export default class ScreenShare
     // 2. If app certificate is turned on at dashboard, token is needed
     // when joining channel. The channel name and uid used to calculate
     // the token has to match the ones used for channel join
-    this.engine?.joinChannel(token, channelId, uid, {
+    this.engine?.joinChannelWithUserAccount(token, channelId, strUid, {
       // Make myself as the broadcaster to send stream to remote
       clientRoleType: ClientRoleType.ClientRoleBroadcaster,
     });

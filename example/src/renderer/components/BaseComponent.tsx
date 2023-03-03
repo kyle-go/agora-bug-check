@@ -25,6 +25,7 @@ export interface BaseComponentState {
   channelId?: string;
   token?: string;
   uid?: number;
+  strUid?: string;
   joinChannelSuccess?: boolean;
   remoteUsers?: number[];
   startPreview?: boolean;
@@ -168,6 +169,13 @@ export abstract class BaseComponent<
           }}
           placeholder={`channelId`}
           value={channelId}
+        />
+        <AgoraTextInput
+          onChangeText={(text) => {
+            this.setState({ strUid: text });
+          }}
+          placeholder={`enter string uid`}
+          value={''}
         />
         <AgoraButton
           title={`${joinChannelSuccess ? 'leave' : 'join'} Channel`}
