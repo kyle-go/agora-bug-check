@@ -73,7 +73,7 @@ export default class ScreenShare
     protected createState(): State {
         return {
             appId: Config.appId,
-            enableVideo: true,
+            enableVideo: false,
             channelId: Config.channelId,
             token: Config.token,
             uid: Config.uid,
