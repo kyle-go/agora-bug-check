@@ -119,10 +119,11 @@ export default class ScreenShare
 
         // Need to enable video on this case
         // If you only call `enableAudio`, only relay the audio stream to the target channel
-        this.engine.enableVideo();
+        this.engine.disableVideo();
+        this.engine.disableAudio();
 
         // Start preview before joinChannel
-        this.engine.startPreview();
+        // this.engine.startPreview();
         this.setState({startPreview: true});
 
         this.getScreenCaptureSources();
