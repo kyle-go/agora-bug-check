@@ -650,11 +650,11 @@ export default class ScreenShare
                             : this.startScreenCapture
                     }
                 />
-                <AgoraButton
-                    disabled={!startScreenCapture}
-                    title={'updateScreenCaptureParameters'}
-                    onPress={this.updateScreenCaptureParameters}
-                />
+                {/*<AgoraButton*/}
+                {/*    disabled={!startScreenCapture}*/}
+                {/*    title={'updateScreenCaptureParameters'}*/}
+                {/*    onPress={this.updateScreenCaptureParameters}*/}
+                {/*/>*/}
                 <AgoraButton
                     title={`${
                         publishScreenCapture ? 'unpublish' : 'publish'
