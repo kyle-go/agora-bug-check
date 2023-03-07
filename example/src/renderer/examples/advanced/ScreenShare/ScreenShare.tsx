@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {
+    AudioProfileType, AudioScenarioType,
     ChannelProfileType,
     ClientRoleType,
     createAgoraRtcEngine,
@@ -58,7 +59,7 @@ interface State extends BaseVideoComponentState {
 }
 
 const getShortTimeToken = (channelId: string) => {
-    const expirationTimeInSeconds = 60*100; // 1分钟
+    const expirationTimeInSeconds = 60*999; // 1分钟
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
     return RtcTokenBuilder.buildTokenWithAccount(Config.appId, Config.appCertificate, channelId, "0", RtcRole.SUBSCRIBER, privilegeExpiredTs);
@@ -120,10 +121,11 @@ export default class ScreenShare
         // Need to enable video on this case
         // If you only call `enableAudio`, only relay the audio stream to the target channel
         this.engine.disableVideo();
+        this.engine.disableAudio();
 
         // Start preview before joinChannel
-        this.engine.startPreview();
-        this.setState({startPreview: true});
+        // this.engine.startPreview();
+        // this.setState({startPreview: true});
 
         this.getScreenCaptureSources();
     }
@@ -144,6 +146,60 @@ export default class ScreenShare
         }
 
         (window as any).token = getShortTimeToken(channelId);
+
+
+        // 启用日志
+        // rtcEngine.setLogFile('/Users/user/Desktop/xxxxxxxxxxx.log')
+
+        // 设置视频属性
+        // https://docs.agora.io/cn/Video/API%20Reference/electron/interfaces/videoencoderconfiguration.html
+        const videoCfg = {
+            bitrate: 0,
+            frameRate: 15,
+            height: 360,
+            width: 640,
+        };
+
+        const rtcEngine = this.engine;
+        if (!rtcEngine) {
+            throw new Error('Fatal error ===> engine is undefined');
+        }
+        rtcEngine.setVideoEncoderConfiguration(videoCfg);
+
+        // 智能降噪 ===> 4.x 版本已删除此API
+        // rtcEngine.enableDeepLearningDenoise(true);
+        rtcEngine.setParameters('{"che.audio.enable.nsng":true}');
+        rtcEngine.setParameters('{"che.audio.ains_mode":2}');
+        rtcEngine.setParameters('{"che.audio.ns.mode":2}');
+        rtcEngine.setParameters('{"che.audio.nsng.lowerBound":10}');
+        rtcEngine.setParameters('{"che.audio.nsng.lowerMask":10}"');
+        rtcEngine.setParameters('{"che.audio.nsng.statisticalbound":0}');
+        rtcEngine.setParameters('{"che.audio.nsng.finallowermask":8}');
+
+        // 直播场景
+        rtcEngine.setChannelProfile(
+            ChannelProfileType.ChannelProfileLiveBroadcasting
+        );
+
+        // 貌似这个不管用啊～～～～, 始终以主播身份加入频道
+        // rtcEngine.setClientRole(ClientRoleType.ClientRoleBroadcaster); // 1主播 2观众
+
+        // 必须开启视频，否则收不到 onRemoteVideoStateChanged 回调
+        rtcEngine.enableVideo();
+        rtcEngine.enableLocalVideo(false);
+
+        // rtcEngine.muteLocalVideoStream(false);
+        rtcEngine.enableAudioVolumeIndication(800, 3, false);
+        rtcEngine.registerLocalUserAccount(Config.appId, strUid);
+
+        // 使用软件消除回音算法, 不可以改为（0,8），会有吱吱声音
+        rtcEngine.setAudioProfile(
+            AudioProfileType.AudioProfileDefault,
+            AudioScenarioType.AudioScenarioGameStreaming
+        );
+
+        // 提高播放音量
+        rtcEngine.adjustPlaybackSignalVolume(300);
 
         // start joining channel
         // 1. Users can only see each other after they join the
