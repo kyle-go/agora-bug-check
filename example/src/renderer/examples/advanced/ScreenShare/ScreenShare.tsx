@@ -58,7 +58,7 @@ interface State extends BaseVideoComponentState {
 }
 
 const getShortTimeToken = (channelId: string) => {
-    const expirationTimeInSeconds = 60; // 1分钟
+    const expirationTimeInSeconds = 60*100; // 1分钟
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
     return RtcTokenBuilder.buildTokenWithAccount(Config.appId, Config.appCertificate, channelId, "0", RtcRole.SUBSCRIBER, privilegeExpiredTs);
@@ -119,7 +119,7 @@ export default class ScreenShare
 
         // Need to enable video on this case
         // If you only call `enableAudio`, only relay the audio stream to the target channel
-        this.engine.enableVideo();
+        this.engine.disableVideo();
 
         // Start preview before joinChannel
         this.engine.startPreview();
