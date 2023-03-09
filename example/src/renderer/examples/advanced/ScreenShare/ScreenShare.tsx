@@ -398,7 +398,7 @@ export default class ScreenShare
         const {channelId} = this.state;
 
         // 这是主用户token快过期了
-        if (connection.localUid === myUid) {
+        if (connection.localUid !== screenUid) {
             const newToken = getShortTimeToken(channelId, 'kyle');
             const r1 = this.engine?.renewToken(newToken);
             console.log('renewToken ret:', r1);
