@@ -37,10 +37,11 @@ import {
 import RtcSurfaceView from '../../../components/RtcSurfaceView';
 import {rgbImageBufferToBase64} from '../../../utils/base64';
 import {ScreenCaptureSourceType} from '../../../../../../ts/Private/IAgoraRtcEngine';
-import {RtcTokenBuilder,RtcRole} from "agora-access-token";
+import {RtcTokenBuilder, RtcRole} from "agora-access-token";
 
 let myUid;
 let screenUid;
+
 interface State extends BaseVideoComponentState {
     token2: string;
     uid2: number;
@@ -61,7 +62,7 @@ interface State extends BaseVideoComponentState {
 }
 
 const getShortTimeToken = (channelId: string, strUid: string) => {
-    const expirationTimeInSeconds = 60*1; // 1分钟
+    const expirationTimeInSeconds = 60 * 1; // 1分钟
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
     return RtcTokenBuilder.buildTokenWithAccount(Config.appId, Config.appCertificate, channelId, strUid, RtcRole.SUBSCRIBER, privilegeExpiredTs);
@@ -147,7 +148,10 @@ export default class ScreenShare
             return;
         }
 
-        (window as any).token = getShortTimeToken(channelId, strUid);
+        if (strUid !== 'kyle') {
+            alert('uid must === kyle');
+            return;
+        }
 
         // 启用日志
         // rtcEngine.setLogFile('/Users/user/Desktop/xxxxxxxxxxx.log')
@@ -202,13 +206,15 @@ export default class ScreenShare
         // 提高播放音量
         rtcEngine.adjustPlaybackSignalVolume(300);
 
+        const tk = getShortTimeToken(channelId, strUid);
+
         // start joining channel
         // 1. Users can only see each other after they join the
         // same channel successfully using the same app id.
         // 2. If app certificate is turned on at dashboard, token is needed
         // when joining channel. The channel name and uid used to calculate
         // the token has to match the ones used for channel join
-        this.engine?.joinChannelWithUserAccount((window as any).token, channelId, strUid, {
+        this.engine?.joinChannelWithUserAccount(tk, channelId, strUid, {
             // Make myself as the broadcaster to send stream to remote
             clientRoleType: ClientRoleType.ClientRoleBroadcaster,
         });
@@ -292,32 +298,32 @@ export default class ScreenShare
     /**
      * Step 3-2 (Optional): updateScreenCaptureParameters
      */
-    updateScreenCaptureParameters = () => {
-        const {
-            width,
-            height,
-            frameRate,
-            bitrate,
-            captureMouseCursor,
-            windowFocus,
-            excludeWindowList,
-            highLightWidth,
-            highLightColor,
-            enableHighLight,
-        } = this.state;
-        this.engine?.updateScreenCaptureParameters({
-            dimensions: {width, height},
-            frameRate,
-            bitrate,
-            captureMouseCursor,
-            windowFocus,
-            excludeWindowList,
-            excludeWindowCount: excludeWindowList.length,
-            highLightWidth,
-            highLightColor,
-            enableHighLight,
-        });
-    };
+    // updateScreenCaptureParameters = () => {
+    //     const {
+    //         width,
+    //         height,
+    //         frameRate,
+    //         bitrate,
+    //         captureMouseCursor,
+    //         windowFocus,
+    //         excludeWindowList,
+    //         highLightWidth,
+    //         highLightColor,
+    //         enableHighLight,
+    //     } = this.state;
+    //     this.engine?.updateScreenCaptureParameters({
+    //         dimensions: {width, height},
+    //         frameRate,
+    //         bitrate,
+    //         captureMouseCursor,
+    //         windowFocus,
+    //         excludeWindowList,
+    //         excludeWindowCount: excludeWindowList.length,
+    //         highLightWidth,
+    //         highLightColor,
+    //         enableHighLight,
+    //     });
+    // };
 
     /**
      * Step 3-4: publishScreenCapture
@@ -332,11 +338,6 @@ export default class ScreenShare
         //     this.error('uid2 is invalid');
         //     return;
         // }
-
-        if (!(window as any).token) {
-            alert('join channel first!');
-            return;
-        }
 
         const tk = getShortTimeToken(channelId, '12345678')
 
@@ -392,7 +393,7 @@ export default class ScreenShare
         if (info.userAccount === '12345678') {
             screenUid = info.uid
         }
-        if(info.userAccount === 'kyle') {
+        if (info.userAccount === 'kyle') {
             myUid = info.uid
         }
     }
@@ -401,13 +402,15 @@ export default class ScreenShare
         console.error('onTokenPrivilegeWillExpire', connection);
         const {channelId} = this.state;
 
+        // 这是主用户token快过期了
         if (connection.localUid === myUid) {
             const newToken = getShortTimeToken(channelId, 'kyle');
             const r1 = this.engine?.renewToken(newToken);
             console.log('renewToken ret:', r1);
         } else {
+            // 这是screen share用户token快过期了
             const newToken = getShortTimeToken(channelId, '12345678');
-            const r2 = this.engine?.updateChannelMediaOptionsEx( {token: newToken},connection);
+            const r2 = this.engine?.updateChannelMediaOptionsEx({token: newToken}, connection);
             console.log('updateChannelMediaOptionsEx ret:', r2);
         }
         //
