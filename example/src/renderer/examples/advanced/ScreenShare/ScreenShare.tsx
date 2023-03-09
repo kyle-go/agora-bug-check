@@ -39,6 +39,8 @@ import {rgbImageBufferToBase64} from '../../../utils/base64';
 import {ScreenCaptureSourceType} from '../../../../../../ts/Private/IAgoraRtcEngine';
 import {RtcTokenBuilder,RtcRole} from "agora-access-token";
 
+let myUid;
+let screenUid;
 interface State extends BaseVideoComponentState {
     token2: string;
     uid2: number;
@@ -58,11 +60,11 @@ interface State extends BaseVideoComponentState {
     publishScreenCapture: boolean;
 }
 
-const getShortTimeToken = (channelId: string) => {
-    const expirationTimeInSeconds = 60*999; // 1分钟
+const getShortTimeToken = (channelId: string, strUid: string) => {
+    const expirationTimeInSeconds = 60*1; // 1分钟
     const currentTimestamp = Math.floor(Date.now() / 1000);
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
-    return RtcTokenBuilder.buildTokenWithAccount(Config.appId, Config.appCertificate, channelId, "0", RtcRole.SUBSCRIBER, privilegeExpiredTs);
+    return RtcTokenBuilder.buildTokenWithAccount(Config.appId, Config.appCertificate, channelId, strUid, RtcRole.SUBSCRIBER, privilegeExpiredTs);
 }
 
 export default class ScreenShare
@@ -145,8 +147,7 @@ export default class ScreenShare
             return;
         }
 
-        (window as any).token = getShortTimeToken(channelId);
-
+        (window as any).token = getShortTimeToken(channelId, strUid);
 
         // 启用日志
         // rtcEngine.setLogFile('/Users/user/Desktop/xxxxxxxxxxx.log')
@@ -337,9 +338,11 @@ export default class ScreenShare
             return;
         }
 
+        const tk = getShortTimeToken(channelId, '12345678')
+
         // publish screen share stream
         this.engine?.joinChannelEx(
-            (window as any).token,
+            tk,
             {channelId, localUid: 12345678},
             {
                 autoSubscribeAudio: false,
@@ -386,19 +389,35 @@ export default class ScreenShare
     onUserInfoUpdated(uid: number, info: UserInfo) {
         console.log('onUserInfoUpdated->uid:' + uid);
         console.log('onUserInfoUpdated->info:' + JSON.stringify(info));
+        if (info.userAccount === '12345678') {
+            screenUid = info.uid
+        }
+        if(info.userAccount === 'kyle') {
+            myUid = info.uid
+        }
     }
 
     onTokenPrivilegeWillExpire(connection: RtcConnection) {
         console.error('onTokenPrivilegeWillExpire', connection);
         const {channelId} = this.state;
 
-        const newToken = getShortTimeToken(channelId);
-        (window as any).token = newToken;
-
-        const r1 = this.engine?.renewToken(newToken);
-        console.log('renewToken ret:', r1);
-        const r2 = this.engine?.updateChannelMediaOptionsEx( {token: newToken},connection);
-        console.log('updateChannelMediaOptionsEx ret:', r2);
+        if (connection.localUid === myUid) {
+            const newToken = getShortTimeToken(channelId, 'kyle');
+            const r1 = this.engine?.renewToken(newToken);
+            console.log('renewToken ret:', r1);
+        } else {
+            const newToken = getShortTimeToken(channelId, '12345678');
+            const r2 = this.engine?.updateChannelMediaOptionsEx( {token: newToken},connection);
+            console.log('updateChannelMediaOptionsEx ret:', r2);
+        }
+        //
+        // const newToken = getShortTimeToken(channelId, 'abc');
+        // (window as any).token = newToken;
+        //
+        // const r1 = this.engine?.renewToken(newToken);
+        // console.log('renewToken ret:', r1);
+        // const r2 = this.engine?.updateChannelMediaOptionsEx( {token: newToken},connection);
+        // console.log('updateChannelMediaOptionsEx ret:', r2);
     }
 
     onJoinChannelSuccess(connection: RtcConnection, elapsed: number) {
