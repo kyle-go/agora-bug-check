@@ -148,11 +148,6 @@ export default class ScreenShare
             return;
         }
 
-        if (strUid !== 'kyle') {
-            alert('uid must === kyle');
-            return;
-        }
-
         // 启用日志
         // rtcEngine.setLogFile('/Users/user/Desktop/xxxxxxxxxxx.log')
 
